@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { ExistingUserException } from './exceptions/ExistingUserException';
 import { UserNotFoundException } from './exceptions/UserNotFoundException';
+import { UpdateUserDTO } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -32,6 +33,14 @@ export class UserService {
       throw new UserNotFoundException (`There is no user with the ID ${id}`, HttpStatus.NOT_FOUND);
     }
     return user;
+  }
+
+  async update (id: number, updateUserDto: UpdateUserDTO) {
+    const user = await this.repository.findOne({ where: {id}});
+    if (!user) {
+      throw new UserNotFoundException (`There is no user with the ID ${id}`, HttpStatus.NOT_FOUND);
+    }
+    return this.repository.save({ ...user, ...updateUserDto });
   }
 
   async remove(id: number) {
