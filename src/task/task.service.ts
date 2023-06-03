@@ -29,13 +29,20 @@ export class TaskService {
     return this.taskRepository.save(task);
   }
 
+  async findAll () {
+    return this.taskRepository.find();
+  }
+
   async findAllByUserName(userName: string) {
     const user = await this.userRepository.findOne({ where: { name: userName }});
     if (!user) {
       throw new UserNotFoundException(`There is no user named ${userName}`,
       HttpStatus.BAD_REQUEST);
     }
-    const tasks = this.taskRepository.find({ where: { id: user.id }});
+    const userId = user.id;
+    const tasks = this.taskRepository.createQueryBuilder("task")
+    .leftJoinAndSelect("task.user", "user")
+    .where('task.userId = :userId', { userId }).getMany();
     return tasks;
   }
 
@@ -54,22 +61,31 @@ export class TaskService {
     }
     return task;
   }
-  async findByUserId(userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId}})
 
-    if (!user) {
-      throw new UserNotFoundException("There is no User with this ID!", HttpStatus.BAD_REQUEST);
+  // async findByUserId(userId: number) {
+  //   const user = await this.userRepository.findOne({ where: { id: userId}})
+
+  //   if (!user) {
+  //     throw new UserNotFoundException("There is no User with this ID!", HttpStatus.BAD_REQUEST);
+  //   }
+  //   const tasks = await this.taskRepository.find({ where: { user} });
+
+  //   return tasks;
+  // }
+
+  async update (id: number, updateTaskDto: UpdateTaskDto) {
+    const task = await this.taskRepository.findOne({ where: {id}});
+    if (!task) {
+      throw new TaskNotFoundException (`There is no Task with the ID ${id}`, HttpStatus.NOT_FOUND);
     }
-    const tasks = await this.taskRepository.find({ where: { user} });
-
-    return tasks;
+    return this.taskRepository.save({ ...task, ...updateTaskDto });
   }
 
-  update(id: number, updateTaskDto: UpdateTaskDto) {
-    return `This action updates a #${id} task`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} task`;
+  async remove(id: number) {
+    const task = await this.taskRepository.findOne({ where: { id }});
+    if (!task) {
+      throw new TaskNotFoundException("There is no task with this ID !", HttpStatus.BAD_REQUEST);
+    }
+    return this.taskRepository.remove(task);
   }
 }

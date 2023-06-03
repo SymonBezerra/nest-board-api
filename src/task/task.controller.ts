@@ -17,20 +17,25 @@ export class TaskController {
   }
 
   @Get()
-  findAllByUser(@Query("userName") name: string) {
-    try {
-      return this.taskService.findAllByUserName(name);
-    } catch (err) {
-      return { ... err };
-    }
+  findAll () {
+    return this.taskService.findAll();
   }
 
-  @Get()
+  @Get("/name")
   findByName(@Query("name") name: string) {
     try {
       return this.taskService.findByName(name);
     } catch (err) {
       return { ... err};
+    }
+  }
+
+  @Get("/user")
+  findAllByUser(@Query("name") name: string) {
+    try {
+      return this.taskService.findAllByUserName(name);
+    } catch (err) {
+      return { ... err };
     }
   }
 
@@ -43,14 +48,14 @@ export class TaskController {
     }
   }
 
-  @Get("user/:id")
-  findByUserId(@Param('id') id: string) {
-    try {
-      return this.taskService.findByUserId(+id);
-    } catch (err) {
-      return { ... err };
-    }
-  }
+  // @Get("user/:id")
+  // findByUserId(@Param('id') id: string) {
+  //   try {
+  //     return this.taskService.findByUserId(+id);
+  //   } catch (err) {
+  //     return { ... err };
+  //   }
+  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
@@ -59,6 +64,10 @@ export class TaskController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.taskService.remove(+id);
+    try {
+      return this.taskService.remove(+id);
+    } catch (err) {
+      return { ... err };
+    }
   }
 }
